@@ -79,18 +79,16 @@ async def task_offer(request: MinerTaskRequest) -> MinerTaskResponse:
 async def get_latest_model_submission(task_id: str) -> str:
     await asyncio.sleep(3)
 
-    # Retrieve the miner responsible for the task
     miner = get_miner_for_task(task_id)
     if not miner:
-        raise HTTPException(status_code=404, detail="No miner found for the task.")
+        raise HTTPException(status_code=404, detail="No model.")
 
-    # Proxy the request to the correct miner
     if miner == "miner_1":
         real_miner_url = f"{MINER_1_URL}/get_latest_model_submission/{task_id}"
     elif miner == "miner_2":
         real_miner_url = f"{MINER_2_URL}/get_latest_model_submission/{task_id}"
     else:
-        raise HTTPException(status_code=500, detail="Unknown miner.")
+        raise HTTPException(status_code=404, detail="No model.")
 
     logger.info(f"Proxying request to {miner} for task {task_id}")
 
@@ -101,8 +99,8 @@ async def get_latest_model_submission(task_id: str) -> str:
                 return response.json()
             else:
                 logger.error(f"{miner} returned an error: {response.status_code}")
-                raise HTTPException(status_code=response.status_code, detail="Error from miner.")
+                raise HTTPException(status_code=404, detail="No model.")
     
     except Exception as e:
         logger.error(f"Error connecting to {miner}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to connect to miner.")
+        raise HTTPException(status_code=404, detail="No model.")
