@@ -1,0 +1,33 @@
+services:
+
+  axolotroll-1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        BUILD_PORT: "9002"
+    ports:
+      - "9002:9002"
+    env_file:
+      - .env
+  axolotroll-2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        BUILD_PORT: "9003"
+    ports:
+      - "9003:9003"
+    env_file:
+      - .env
+  axolotroll-3:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        BUILD_PORT: "9004"
+    ports:
+      - "9004:9004"
+    env_file:
+      - .env
+    

@@ -1,0 +1,6 @@
+fastapi
+httpx
+loguru
+python-dotenv
+uvicorn
+aiohttp
