@@ -1,8 +1,7 @@
 import httpx
 import asyncio
-import redis
 from loguru import logger
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from models.training_request import TrainingRequest
 from models.miner_task_request import MinerTaskRequest
@@ -10,19 +9,12 @@ from models.miner_task_response import MinerTaskResponse
 
 router = APIRouter()
 
-# Redis setup
-r = redis.Redis(host="redis", port=6379, db=0)
-
-# Miners' URLs
 MINER_1_CURRENT_TASK_URL = "http://94.156.8.195:9002/current_training_task/"
 MINER_2_CURRENT_TASK_URL = "http://94.156.8.247:9002/current_training_task/"
 MINER_1_URL = "http://94.156.8.195:9002"
 MINER_2_URL = "http://94.156.8.247:9002"
 
-# Task-to-Miner Redis Key Prefix
-TASK_TO_MINER_KEY = "task_to_miner"
 
-# Helper function to check current task for a miner
 async def check_miner_task(miner_task_url):
     try:
         async with httpx.AsyncClient() as client:
@@ -36,15 +28,6 @@ async def check_miner_task(miner_task_url):
         logger.error(f"Failed to connect to miner: {str(e)}")
         return None
 
-# Store the task-to-miner mapping in Redis
-def store_task_to_miner(task_id: str, miner: str):
-    r.set(f"{TASK_TO_MINER_KEY}:{task_id}", miner)
-
-# Retrieve the miner for a given task from Redis
-def get_miner_for_task(task_id: str):
-    miner = r.get(f"{TASK_TO_MINER_KEY}:{task_id}")
-    return miner.decode("utf-8") if miner else None
-
 @router.post("/start_training/")
 async def start_training(request: TrainingRequest):
     await asyncio.sleep(3)
@@ -54,18 +37,15 @@ async def start_training(request: TrainingRequest):
 async def task_offer(request: MinerTaskRequest) -> MinerTaskResponse:
     await asyncio.sleep(3)
     
-    # Check Miner 1 and Miner 2 tasks
     miner_1_task_id = await check_miner_task(MINER_1_CURRENT_TASK_URL)
     miner_2_task_id = await check_miner_task(MINER_2_CURRENT_TASK_URL)
 
     if miner_1_task_id == request.task_id:
         logger.info(f"Task {request.task_id} accepted as Miner 1 is working on it.")
-        store_task_to_miner(request.task_id, "miner_1")
         return MinerTaskResponse(message="Yes", accepted=True)
 
     elif miner_2_task_id == request.task_id:
         logger.info(f"Task {request.task_id} accepted as Miner 2 is working on it.")
-        store_task_to_miner(request.task_id, "miner_2")
         return MinerTaskResponse(message="Yes", accepted=True)
 
     else:
