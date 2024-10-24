@@ -1,8 +1,4 @@
 services:
-  redis:
-    image: redis/redis-stack:latest
-    ports:
-      - 6379
   axolotroll-1:
     build:
       context: .
