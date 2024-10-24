@@ -3,4 +3,5 @@ httpx
 loguru
 python-dotenv
 uvicorn
+redis
 aiohttp
