@@ -59,48 +59,20 @@ async def task_offer(request: MinerTaskRequest) -> MinerTaskResponse:
     miner_2_task_id = await check_miner_task(MINER_2_CURRENT_TASK_URL)
 
     if miner_1_task_id == request.task_id:
-        # If Miner 1 is already working on the task
         logger.info(f"Task {request.task_id} accepted as Miner 1 is working on it.")
         store_task_to_miner(request.task_id, "miner_1")
         return MinerTaskResponse(message="Yes", accepted=True)
 
     elif miner_2_task_id == request.task_id:
-        # If Miner 2 is already working on the task
         logger.info(f"Task {request.task_id} accepted as Miner 2 is working on it.")
         store_task_to_miner(request.task_id, "miner_2")
         return MinerTaskResponse(message="Yes", accepted=True)
 
     else:
-        # Reject if neither miner is working on the task
         logger.info(f"Task {request.task_id} rejected as neither miner is working on it.")
         return MinerTaskResponse(message="At capacity", accepted=False)
 
 @router.get("/get_latest_model_submission/{task_id}")
 async def get_latest_model_submission(task_id: str) -> str:
     await asyncio.sleep(3)
-
-    miner = get_miner_for_task(task_id)
-    if not miner:
-        raise HTTPException(status_code=404, detail="No model.")
-
-    if miner == "miner_1":
-        real_miner_url = f"{MINER_1_URL}/get_latest_model_submission/{task_id}"
-    elif miner == "miner_2":
-        real_miner_url = f"{MINER_2_URL}/get_latest_model_submission/{task_id}"
-    else:
-        raise HTTPException(status_code=404, detail="No model.")
-
-    logger.info(f"Proxying request to {miner} for task {task_id}")
-
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(real_miner_url)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"{miner} returned an error: {response.status_code}")
-                raise HTTPException(status_code=404, detail="No model.")
-    
-    except Exception as e:
-        logger.error(f"Error connecting to {miner}: {str(e)}")
-        raise HTTPException(status_code=404, detail="No model.")
+    return f"ncbateman/tuning-miner-testbed-{task_id}"
