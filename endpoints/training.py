@@ -45,7 +45,7 @@ async def task_offer(request: MinerTaskRequest) -> MinerTaskResponse:
             return MinerTaskResponse(message="At capacity", accepted=False)
     else:
         logger.error("Unable to determine REAL_MINER's task.")
-        return MinerTaskResponse(message="fuck", accepted=False)
+        return MinerTaskResponse(message="At capacity", accepted=False)
 
 @router.get("/get_latest_model_submission/{task_id}")
 async def get_latest_model_submission(task_id: str) -> str:
@@ -59,13 +59,12 @@ async def get_latest_model_submission(task_id: str) -> str:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(real_miner_url)
-            
             if response.status_code == 200:
                 return response.json()
             else:
                 logger.error(f"REAL_MINER returned an error: {response.status_code}")
-                raise HTTPException(status_code=response.status_code, detail="Error from REAL_MINER")
+                raise HTTPException(status_code=response.status_code, detail="No model lol")
     
     except Exception as e:
         logger.error(f"Error connecting to REAL_MINER: {str(e)}")
-        raise HTTPException(status_code=500, detail="ah shit")
+        raise HTTPException(status_code=response.status_code, detail="No model lol")
